@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(git clone https://github.com/forsonny/The-Crucible-Writing-System-For-Claude.git crucible-temp)",
+      "Bash(tree -L 3 .claude/ -I 'node_modules|.git')",
+      "Skill(webnovel-init)",
+      "Skill(webnovel-plan)",
+      "Bash(git add .)",
+      "Bash(git reset)",
+      "Bash(git add .claude/skills/webnovel-writer/)",
+      "Bash(git commit -m \"feat: webnovel-writer skill 完整实现\n\n✨ 核心功能\n- 防幻觉三大定律（大纲即法律/设定即物理/发明需申报）\n- 5 个专职审查员（爽点/一致性/节奏/OOC/连贯性）\n- 交互式创作流（剧情分支选择/设定补全询问）\n\n🔧 长文支持机制（200万字）\n- context_manager.py: 滑动窗口上下文（节省93%tokens）\n- backup_manager.py: Git原子性版本控制\n- status_reporter.py: 可视化健康报告\n- strand-weave-pattern.md: 情节线织网（防止节奏单调）\n\n📝 自动化脚本\n- init_project.py: 项目初始化 + Git自动初始化\n- extract_entities.py: NEW_ENTITY自动提取\n- update_state.py: state.json安全更新\n\n📚 参考手册\n- anti-hallucination.md: 防幻觉协议详解\n- cool-points-guide.md: 爽点设计完整指南\n- pacing-control.md: 节奏控制技巧\n- genre-tropes.md: 题材套路库\n- git-workflow.md: Git工作流文档\n\n🎯 题材模板\n- 修仙.md: 修仙系统流模板\n\n🚀 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
+      "Bash(git reset --soft HEAD~1)",
+      "Bash(git reset HEAD~1)",
+      "Bash(git add .claude/)"
+    ]
+  }
+}

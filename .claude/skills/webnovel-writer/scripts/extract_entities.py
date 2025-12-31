@@ -26,6 +26,12 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple
 
+# Windows 编码兼容性修复
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 # 实体类型与目标文件映射
 ENTITY_TYPE_MAP = {
     "角色": "设定集/角色库/{category}/{name}.md",

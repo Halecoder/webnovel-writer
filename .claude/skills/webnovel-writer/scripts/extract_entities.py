@@ -67,8 +67,9 @@ def extract_new_entities(file_path: str) -> List[Dict]:
     with open(file_path, 'r', encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             # 匹配 [NEW_ENTITY: 类型, 名称, 描述]
+            # 支持全角逗号（，）和半角逗号（,）混用
             matches = re.findall(
-                r'\[NEW_ENTITY:\s*([^,]+),\s*([^,]+),\s*([^\]]+)\]',
+                r'\[NEW_ENTITY:\s*([^,，]+)[,，]\s*([^,，]+)[,，]\s*([^\]]+)\]',
                 line
             )
 

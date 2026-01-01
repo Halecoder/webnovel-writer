@@ -84,130 +84,108 @@ description: 按大纲创作指定章节的正文内容（3000-5000字），自�
 
 **THIS STEP IS NOT OPTIONAL. YOU MUST EXECUTE IT.**
 
-**YOU MUST call the chapter-writer agent** to generate chapter content:
+**YOU MUST generate chapter content** following the webnovel-writer skill protocols:
 
 ---
 
-**Step 2.1: Prepare Context Summary for Agent**
+**The webnovel-writer skill will automatically guide you** to apply:
+- ✅ **Three Anti-Hallucination Laws** (大纲即法律/设定即物理/发明需申报)
+- ✅ **Cool-Points Design** (5 types strategy: 打脸/升级/收获/扮猪吃虎/装逼打脸)
+- ✅ **Strand Weave Pacing** (Quest/Fire/Constellation balance)
+- ✅ **Dialogue and Description Standards**
 
-**Extract from loaded context**:
+---
 
-1. **Outline Summary**:
+**Context to Apply** (from Step 1):
+
+1. **Outline Requirements** (from 大纲):
+   - Goal: [本章必须完成的目标]
+   - Cool Point: [必须交付的爽点]
+   - New Entities: [必须引入的角色/地点/物品]
+   - Foreshadowing: [必须埋设的伏笔]
+
+2. **Protagonist State** (from state.json):
+   - Power: [境界] [层数]层 → **CRITICAL: 不得超过此实力**
+   - Location: [当前位置] → 章节场景必须符合
+   - Golden Finger: [金手指] Lv.[等级]
+
+3. **Previous Context** (from 前2章):
+   - 关键剧情点
+   - 人物关系变化
+   - 已埋伏笔
+
+4. **Review Feedback** (if loaded in Step 1.4 - CRITICAL):
+   - 🔴 **Critical Issues to AVOID**: [从审查报告提取的问题]
+   - 💡 **Recommendations to APPLY**: [从审查报告提取的Top 3建议]
+
+---
+
+**Generation Process**:
+
+**YOU MUST follow these steps** while generating:
+
+1. **Pre-Writing Planning** (think before writing):
    ```
-   Goal: [本章目标]
-   Cool Point: [爽点类型和表现]
-   New Entities: [需要引入的角色/地点/物品]
-   Foreshadowing: [需要埋设的伏笔]
+   - 本章目标: [从大纲提取]
+   - 爽点设计: [选择类型，避免连续3章同类型]
+   - Strand选择: [Quest/Fire/Constellation，根据history避免连续5章]
+   - 审查反馈应用: [如何规避Critical Issues + 应用Recommendations]
    ```
 
-2. **Protagonist State**:
-   ```
-   Realm: [境界] [层数]层
-   Location: [当前位置]
-   Bottleneck: [瓶颈描述]
-   Golden Finger: [金手指名称] Lv.[等级]
-   ```
+2. **Content Generation** (3000-5000 Chinese characters):
+   - ✅ Follow outline Goal 100%
+   - ✅ Deliver Cool Point as promised
+   - ✅ Introduce required Entities with `[NEW_ENTITY: 类型, 名称, 描述]` tags
+   - ✅ Plant Foreshadowing as planned
+   - ✅ Protagonist power ≤ state.json (no power inflation)
+   - ✅ Apply review feedback (avoid Critical Issues)
 
-3. **Previous Context** (if chapter > 1):
-   ```
-   [前2章内容摘要，100-200字，包含关键剧情点]
-   ```
+3. **Interactive Adjustment** (if user interrupts):
+   - If user says "这段改一下" → Adjust immediately
+   - If user says "Accept" → Continue
+   - If user says "Reject" → Regenerate that section
 
-4. **Review Feedback** (if loaded in Step 1.4):
+4. **Self-Review** (before saving):
+   - [ ] Word count: 3000-5000 chars?
+   - [ ] Outline Goal achieved?
+   - [ ] Cool-point delivered?
+   - [ ] No power inflation (≤ state.json)?
+   - [ ] New entities tagged with [NEW_ENTITY]?
+   - [ ] Review feedback applied (if exists)?
+
+5. **Save Output**:
    ```
-   🔴 Critical Issues: [列表]
-   💡 Recommendations: [Top 3]
+   File: 正文/第{N:04d}章.md
+
+   Format:
+   # 第 {N} 章：{标题}
+
+   {正文 3000-5000字}
+
+   ---
+
+   ## 本章统计
+   - **字数**: {实际字数}
+   - **爽点**: {类型}
+   - **主导Strand**: {quest/fire/constellation}
+   - **新角色**: {列表或"无"}
+   - **伏笔**: {列表或"无"}
    ```
 
 ---
 
-**Step 2.2: Invoke chapter-writer Agent (MANDATORY)**
-
-**YOU MUST call the Task tool with the following parameters**:
-
-```
-Task(
-  subagent_type="chapter-writer",
-  description="Write chapter {chapter_num} content",
-  prompt="Generate Chapter {chapter_num} following the webnovel-writer skill protocols.
-
-**Context**:
-
-**Outline**:
-- Goal: {从大纲提取}
-- Cool Point: {从大纲提取}
-- New Entities: {从大纲提取}
-- Foreshadowing: {从大纲提取}
-
-**Protagonist State**:
-- Realm: {realm} {layer}层
-- Location: {location}
-- Bottleneck: {bottleneck}
-- Golden Finger: {golden_finger} Lv.{level}
-
-**Previous Chapters** (if exists):
-{前2章摘要，100-200字}
-
-**Review Feedback** (if exists):
-🔴 Critical Issues to Avoid:
-{从审查报告提取的关键问题列表}
-
-💡 Priority Recommendations:
-{从审查报告提取的Top 3建议}
-
-**Output Requirements**:
-1. Save to: 正文/第{chapter_num:04d}章.md
-2. Word count: 3000-5000 Chinese characters
-3. Follow anti-hallucination laws strictly
-4. Include at least 1 cool-point
-5. Tag new entities with [NEW_ENTITY: 类型, 名称, 描述]
-6. Apply review feedback (avoid Critical Issues, try to apply Recommendations)
-7. Self-review before saving
-
-The webnovel-writer skill knowledge will guide you on:
-- Three anti-hallucination laws (大纲即法律/设定即物理/发明需申报)
-- Cool-points design (5 types strategy)
-- Strand Weave pacing control
-- Dialogue and description standards
-"
-)
-```
-
-**The chapter-writer agent will**:
-1. ✅ Validate context completeness
-2. ✅ Create pre-writing plan (strand selection, cool-point design)
-3. ✅ Generate 3000-5000 word chapter content
-4. ✅ Perform self-review against quality checklist
-5. ✅ Save to `正文/第{N:04d}章.md`
-
----
-
-**Step 2.3: Wait for Agent Completion**
-
-**After the agent returns**:
-- ✅ Verify the chapter file was created
-- ✅ Verify word count is within range (3000-5000)
-- ✅ Proceed to Step 3
-
-**IF agent reports error or self-review failure**:
-```
-❌ Chapter generation failed: [error message]
-STOP execution and report to user.
-DO NOT proceed to Step 3.
-```
-
----
-
-**CRITICAL**:
-- This is NOT optional. You MUST use the Task tool to call chapter-writer agent.
-- You MUST NOT write chapter content directly yourself.
-- You MUST pass all context (outline, state, previous chapters, review feedback) to the agent.
+**CRITICAL Requirements**:
+- ✅ 大纲即法律: 100% follow outline
+- ✅ 设定即物理: Protagonist power ≤ state.json
+- ✅ 发明需申报: All new entities tagged
+- ✅ Apply review feedback (if loaded in Step 1.4)
 
 **FORBIDDEN**:
-- Writing chapter content directly without calling chapter-writer agent
-- Skipping context summary preparation
-- Proceeding without waiting for agent completion
-- Ignoring agent error reports
+- ❌ Deviating from outline
+- ❌ Power inflation (exceeding state.json)
+- ❌ Missing [NEW_ENTITY] tags
+- ❌ Ignoring review feedback Critical Issues
+- ❌ Skipping self-review
 
 ---
 

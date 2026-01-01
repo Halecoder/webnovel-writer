@@ -261,6 +261,55 @@ class StateUpdater:
         })
         print(f"📝 添加审查记录: 第{chapters_range}章 → {report_file}")
 
+    def update_strand_tracker(self, strand: str, chapter: int):
+        """更新主导情节线（Strand Weave系统）"""
+        # 验证 strand 参数
+        valid_strands = ["quest", "fire", "constellation"]
+        if strand.lower() not in valid_strands:
+            print(f"❌ 无效的情节线类型: {strand}（有效值: quest, fire, constellation）")
+            return False
+
+        strand = strand.lower()
+
+        # 初始化 strand_tracker（如果不存在）
+        if "strand_tracker" not in self.state:
+            self.state["strand_tracker"] = {
+                "last_quest_chapter": 0,
+                "last_fire_chapter": 0,
+                "last_constellation_chapter": 0,
+                "current_dominant": None,
+                "chapters_since_switch": 0,
+                "history": []
+            }
+
+        tracker = self.state["strand_tracker"]
+
+        # 更新对应 strand 的最后章节
+        tracker[f"last_{strand}_chapter"] = chapter
+
+        # 判断是否切换 strand
+        if tracker.get("current_dominant") != strand:
+            tracker["current_dominant"] = strand
+            tracker["chapters_since_switch"] = 1
+        else:
+            tracker["chapters_since_switch"] += 1
+
+        # 添加到历史记录
+        tracker["history"].append({
+            "chapter": chapter,
+            "dominant": strand
+        })
+
+        # 只保留最近50章的历史（避免文件过大）
+        if len(tracker["history"]) > 50:
+            tracker["history"] = tracker["history"][-50:]
+
+        print(f"✅ strand_tracker 已更新")
+        print(f"   - 第{chapter}章主导情节线: {strand}")
+        print(f"   - 该情节线已连续{tracker['chapters_since_switch']}章")
+
+        return True
+
 def main():
     parser = argparse.ArgumentParser(
         description="安全更新 state.json",
@@ -382,6 +431,14 @@ def main():
         help='添加审查记录（章节范围 报告文件）'
     )
 
+    # Strand Tracker 更新
+    parser.add_argument(
+        '--strand-dominant',
+        nargs=2,
+        metavar=('STRAND', 'CHAPTER'),
+        help='更新主导情节线（quest/fire/constellation 章节号）'
+    )
+
     args = parser.parse_args()
 
     # 如果没有任何更新参数，显示帮助并退出
@@ -394,7 +451,8 @@ def main():
         args.resolve_foreshadowing,
         args.progress,
         args.volume_planned,
-        args.add_review
+        args.add_review,
+        args.strand_dominant
     ]):
         parser.print_help()
         sys.exit(1)
@@ -457,6 +515,11 @@ def main():
         if args.add_review:
             chapters_range, report_file = args.add_review
             updater.add_review_checkpoint(chapters_range, report_file)
+
+        # Strand Tracker 更新
+        if args.strand_dominant:
+            strand, chapter = args.strand_dominant
+            updater.update_strand_tracker(strand, int(chapter))
 
         # 保存更新
         if not updater.save():

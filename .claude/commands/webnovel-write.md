@@ -335,6 +335,49 @@ python .claude/skills/webnovel-writer/scripts/workflow_manager.py complete-step 
 
 ---
 
+### Step 4.5: Data Archiving (AUTO-TRIGGERED)
+
+**CRITICAL**: After Step 4, **automatically run** archive check:
+
+```bash
+python .claude/skills/webnovel-writer/scripts/archive_manager.py --auto-check
+```
+
+**Purpose**: 防止 state.json 无限增长（200万字长跑保障）
+
+**Archiving Strategy**:
+- **角色归档**: 超过 50 章未出场的次要角色 → `archive/characters.json`
+- **伏笔归档**: status="已回收" 且超过 20 章的伏笔 → `archive/plot_threads.json`
+- **报告归档**: 超过 50 章的旧审查报告 → `archive/reviews.json`
+
+**Trigger Conditions** (满足任一即执行):
+- state.json 大小 ≥ 1 MB
+- 当前章节数是 10 的倍数（每 10 章检查一次）
+
+**Expected Output**:
+```
+✅ 无需归档（触发条件未满足）
+   文件大小: 0.35 MB (阈值: 1.0 MB)
+   当前章节: 7 (每 10 章触发)
+```
+
+**OR** (if archiving triggered):
+```
+✅ 归档完成:
+   角色归档: 12 → characters.json
+   伏笔归档: 8 → plot_threads.json
+   报告归档: 5 → reviews.json
+
+💾 文件大小: 1.2 MB → 0.8 MB (节省 0.4 MB)
+```
+
+**IMPORTANT**:
+- **不需要 workflow_manager 追踪**（归档是内部维护操作）
+- 如报错（如文件不存在），视为警告，不阻塞流程
+- 归档数据可随时使用 `--restore-character "角色名"` 恢复
+
+---
+
 ### Step 5: Git Backup (MANDATORY)
 
 **Before executing Step 5**, **YOU MUST run**:
@@ -634,6 +677,10 @@ python .claude/skills/webnovel-writer/scripts/workflow_manager.py complete-task
 - [ ] `workflow_manager.py start-task` executed successfully
 - [ ] All step tracking calls (`start-step`/`complete-step`) executed
 - [ ] `workflow_manager.py complete-task` executed successfully
+
+**Data Archiving** (200万字长跑保障):
+- [ ] `archive_manager.py --auto-check` executed after Step 4
+- [ ] Archive check result confirmed (无需归档 OR 归档完成)
 
 **Chapter Content**:
 - [ ] Chapter file saved to `正文/第{N:04d}章.md` (3,000-5,000 chars)

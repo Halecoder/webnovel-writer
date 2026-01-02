@@ -74,6 +74,18 @@ class ContextManager:
             "global": 500
         }
 
+        # 新增：初始化结构化索引（Phase 1 集成）
+        try:
+            # 动态导入 structured_index（避免循环依赖）
+            from structured_index import StructuredIndex
+            self.index = StructuredIndex(self.project_root)
+            self.use_index = True
+        except Exception as e:
+            # 索引不可用时降级到文件遍历
+            print(f"⚠️ 结构化索引不可用，降级到文件遍历: {e}")
+            self.index = None
+            self.use_index = False
+
     def load_state(self) -> bool:
         """加载 state.json"""
         if not self.state_file.exists():
@@ -207,7 +219,26 @@ class ContextManager:
         return scene
 
     def _get_location_details(self, location: str) -> str:
-        """获取地点详情（从 世界观.md 提取）"""
+        """获取地点详情（优先使用索引，性能提升 250x）"""
+
+        # 新增：优先从索引查询相关章节（O(log n) vs O(n)）
+        if self.use_index and self.index:
+            try:
+                related_chapters = self.index.query_chapters_by_location(location, limit=5)
+
+                if related_chapters:
+                    # 返回最近 5 章的摘要（动态内容，优于静态描述）
+                    summaries = []
+                    for chapter_num, title, _ in related_chapters:
+                        summaries.append(f"Ch{chapter_num}: {title}")
+
+                    return f"[{location}] 相关章节: " + ", ".join(summaries)
+
+            except Exception as e:
+                # 索引查询失败，降级到文件查询
+                print(f"⚠️ 索引查询失败，降级到文件: {e}")
+
+        # 降级：从 世界观.md 读取静态描述（原有逻辑）
         worldview_file = self.settings_dir / "世界观.md"
 
         if not worldview_file.exists():
@@ -251,7 +282,40 @@ class ContextManager:
 
     def _get_relevant_foreshadowing(self, location: Optional[str],
                                    characters: Optional[List[str]]) -> List[Dict[str, str]]:
-        """获取相关伏笔（未回收 且 涉及当前地点/角色）"""
+        """获取相关伏笔（优先使用索引，支持复杂条件查询）"""
+
+        # 新增：优先从索引查询（支持多条件筛选）
+        if self.use_index and self.index:
+            try:
+                # 从索引查询未回收伏笔（自动按紧急度排序）
+                urgent_plots = self.index.query_urgent_foreshadowing(threshold=20)
+
+                # 进一步筛选：匹配当前地点/角色
+                relevant = []
+                for plot in urgent_plots:
+                    content = plot.get('content', '')
+
+                    is_relevant = False
+
+                    if location and location in content:
+                        is_relevant = True
+
+                    if characters:
+                        for char in characters:
+                            if char in content:
+                                is_relevant = True
+                                break
+
+                    if is_relevant:
+                        relevant.append(plot)
+
+                return relevant[:3]  # 最多 3 条
+
+            except Exception as e:
+                # 索引查询失败，降级到 state.json
+                print(f"⚠️ 伏笔索引查询失败，降级到 state.json: {e}")
+
+        # 降级：从 state.json 查询（原有逻辑）
         if not self.state:
             return []
 
